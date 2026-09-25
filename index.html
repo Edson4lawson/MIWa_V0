@@ -353,7 +353,7 @@
     <div class="final-cta" data-reveal>
       <h2>Prêt à vivre le Bénin autrement ?</h2>
       <p>Manifestez votre intérêt dès maintenant — les places pour ce premier parcours sont limitées.</p>
-      <a href="https://wa.me/2290154047392?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9(e)%20par%20le%20parcours%20MiWa%20We%20Love%20Eya%20%C3%97%20Vodun%20Days." class="cta-btn" id="cta-final" target="_blank" rel="noopener">Je réserve ma place</a>
+      <a href="#" class="cta-btn" id="cta-final" rel="noopener">Je réserve ma place</a>
     </div>
   </div>
 </section>
@@ -444,6 +444,22 @@
       updateSummary();
     });
   });
+
+  var ctaFinal = document.getElementById('cta-final');
+  if (ctaFinal){
+    ctaFinal.addEventListener('click', function(e){
+      e.preventDefault();
+      var message;
+      if (state.pack){
+        var addons = state.addons.length ? state.addons.join(', ') : 'aucune';
+        message = 'Bonjour, je souhaite réserver ma place pour le parcours MiWa We Love Eya × Vodun Days.\nFormule : ' + state.pack.name + ' (' + state.pack.priceLabel + ')\nOptions : ' + addons;
+      } else {
+        message = 'Bonjour, je suis intéressé(e) par le parcours MiWa We Love Eya × Vodun Days.';
+      }
+      var url = 'https://wa.me/2290154047392?text=' + encodeURIComponent(message);
+      window.open(url, '_blank', 'noopener');
+    });
+  }
 </script>
 
 </body>
