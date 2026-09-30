@@ -330,6 +330,13 @@
   .summary.show{display:block;}
   .summary .line{display:flex; justify-content:space-between; padding:6px 0; color:var(--text-dim);}
   .summary .line.total{color:var(--text); font-weight:700; border-top:1px solid var(--border); margin-top:6px; padding-top:12px;}
+  .qty-stepper{ display:flex; align-items:center; gap:12px; }
+  .qty-stepper button{
+    width:26px; height:26px; border-radius:50%; border:1px solid var(--border);
+    background:none; color:var(--text); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qty-stepper button:hover{ border-color:var(--teal); color:var(--teal); }
 
   .practical{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
   .practical .card{background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; padding:20px; text-align:center;}
@@ -524,6 +531,18 @@
     <div class="summary" id="summary">
       <div class="line"><span>Formule</span><span id="sum-pack">—</span></div>
       <div class="line"><span>Options</span><span id="sum-addons">—</span></div>
+      <div class="line">
+        <span>Nombre de personnes</span>
+        <div class="qty-stepper">
+          <button type="button" id="qty-minus" aria-label="Réduire">−</button>
+          <span id="qty-value">1</span>
+          <button type="button" id="qty-plus" aria-label="Augmenter">+</button>
+        </div>
+      </div>
+      <div class="line" id="sum-total-group-row" style="display:none;">
+        <span>Total pour le groupe</span>
+        <span id="sum-total-group">—</span>
+      </div>
       <div class="line total"><span>Base du pack</span><span id="sum-total">—</span></div>
     </div>
   </div>
@@ -655,11 +674,14 @@
     }, 1200);
   });
 
-  var state = { pack: null, addons: [] };
+  var state = { pack: null, addons: [], people: 1 };
   var summary = document.getElementById('summary');
   var sumPack = document.getElementById('sum-pack');
   var sumAddons = document.getElementById('sum-addons');
   var sumTotal = document.getElementById('sum-total');
+  var qtyValue = document.getElementById('qty-value');
+  var sumTotalGroupRow = document.getElementById('sum-total-group-row');
+  var sumTotalGroup = document.getElementById('sum-total-group');
 
   function updateSummary(){
     if (!state.pack){ summary.classList.remove('show'); return; }
@@ -667,13 +689,27 @@
     sumPack.textContent = state.pack.name;
     sumAddons.textContent = state.addons.length ? state.addons.join(', ') : 'aucune';
     sumTotal.textContent = state.pack.priceLabel;
+    if (state.pack && state.people > 1){
+      var total = parseInt(state.pack.price) * state.people;
+      sumTotalGroup.textContent = total + ' $';
+      sumTotalGroupRow.style.display = 'flex';
+    } else {
+      sumTotalGroupRow.style.display = 'none';
+    }
   }
+
+  document.getElementById('qty-minus').addEventListener('click', function(){
+    if (state.people > 1){ state.people--; qtyValue.textContent = state.people; updateSummary(); }
+  });
+  document.getElementById('qty-plus').addEventListener('click', function(){
+    if (state.people < 10){ state.people++; qtyValue.textContent = state.people; updateSummary(); }
+  });
 
   document.querySelectorAll('.pack').forEach(function(btn){
     btn.addEventListener('click', function(){
       document.querySelectorAll('.pack').forEach(function(p){ p.classList.remove('selected'); });
       btn.classList.add('selected');
-      state.pack = { name: btn.dataset.name, priceLabel: btn.dataset.pricelabel };
+      state.pack = { name: btn.dataset.name, priceLabel: btn.dataset.pricelabel, price: btn.dataset.price };
       updateSummary();
     });
   });
@@ -714,7 +750,12 @@
       var message;
       if (state.pack){
         var addons = state.addons.length ? state.addons.join(', ') : 'aucune';
-        message = 'Bonjour, je souhaite réserver ma place pour le parcours MiWa We Love Eya × Vodun Days.\nFormule : ' + state.pack.name + ' (' + state.pack.priceLabel + ')\nOptions : ' + addons;
+        if (state.people > 1){
+          var total = parseInt(state.pack.price) * state.people;
+          message = 'Bonjour, je souhaite réserver ma place pour le parcours MiWa We Love Eya × Vodun Days.\nFormule : ' + state.pack.name + ' (' + state.pack.priceLabel + '/pers.) — Nombre de personnes : ' + state.people + ' — Total : ' + total + ' $\nOptions : ' + addons;
+        } else {
+          message = 'Bonjour, je souhaite réserver ma place pour le parcours MiWa We Love Eya × Vodun Days.\nFormule : ' + state.pack.name + ' (' + state.pack.priceLabel + ')\nOptions : ' + addons;
+        }
       } else {
         message = 'Bonjour, je suis intéressé(e) par le parcours MiWa We Love Eya × Vodun Days.';
       }
